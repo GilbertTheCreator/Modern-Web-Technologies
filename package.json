@@ -1,6 +1,13 @@
 {
+  "type": "module",
   "dependencies": {
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
-    "method-override": "^3.0.0"
+    "express.js": "^1.0.0",
+    "method-override": "^3.0.0",
+    "mongodb": "^6.2.0",
+    "mongoose": "^8.0.2",
+    "npm": "^10.2.5",
+    "react": "^18.2.0"
   }
 }
