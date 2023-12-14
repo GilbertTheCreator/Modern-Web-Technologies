@@ -1,37 +1,63 @@
 import express from 'express';
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcryptjs';
+import session from 'express-session';
+import passportLocalMongoose from 'passport-local-mongoose'; 
 
-const port = 3000;
 const app = express();
-const uri = "mongodb+srv://Gilbert:V89EKOUwRu3x41sO@1.h0mvxrz.mongodb.net/users";
+const PORT = 3000;
 
-let db;
+app.set('view engine', 'ejs');
 
-(async function () {
-    try {
-        const client = await MongoClient.connect(uri, { useUnifiedTopology: true });
-        console.log('Connected to MongoDB.');
-        db = client.db("users");
-
-        await db.createCollection("Users");
-        await db.collection('Users').insertOne({ name: "Jay", age: 25 });
-        await db.collection('Users').insertOne({ name: "Xavier", age: 21 });
-
-    } catch (err) {
-        console.error('Error occurred while connecting to MongoDB:', err);
-    }
-})();
-
-app.get('/', async (req, res) => {
-    try {
-        const users = await db.collection('Users').find().toArray();
-
-        res.send(users);
-    } catch (err) {
-        console.error('Error', err);
-    }
+mongoose.connect('mongodb+srv://Gilbert:V89EKOUwRu3x41sO@1.h0mvxrz.mongodb.net', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
+const userSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+});
+
+userSchema.plugin(passportLocalMongoose);
+
+const User = mongoose.model('User', userSchema);
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+  secret: "UserSecret",
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+app.get('/register', (req, res) => res.render('register'));
+
+app.post('/register', (req, res) => {
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  const newUser = new User({ username: req.body.username, email: req.body.email, password: hashedPassword });
+  newUser.save();
+  res.json({ message: 'User registered successfully' });
+});
+
+app.get('/login', (req, res) => res.render('login'));
+app.post('/login', passport.authenticate('local'), (req, res) => {
+  res.json({ message: 'Logged in successfully' });
+});
+
+app.get('/logout', (req, res) => res.render('logout'));
+app.post('/logout', (req, res) => {
+    res.json({ message: 'Logged out successfully' });
+});
+
+app.listen(3000, () => {
+  console.log('Server running on <http://localhost:3000/>');
 });
