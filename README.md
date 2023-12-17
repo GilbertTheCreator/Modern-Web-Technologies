@@ -5,6 +5,5 @@ GET/tasks/ Displays the tasks
 DELETE/tasks/:taskId Deletes a task by their ID
 POST/register Adds the user to the database
 POST/login  Logins to the database
-<br>
 
 <a href="https://codeclimate.com/github/GilbertTheCreator/Modern-Web-Technologies/maintainability"><img src="https://api.codeclimate.com/v1/badges/15bf603580dd91cb1863/maintainability" /></a>
